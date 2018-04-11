@@ -78,10 +78,10 @@ if __name__ == "__main__":
 
     # Save all prepared numpy datasets
     print("Save train_inputs...")
-    np.save(TEMP_PATH + '/train_inputs.npy', train_inputs)
+    np.save(TEMP_PATH + '/prepared_sets/train_inputs.npy', train_inputs)
     print("Save train_labels...")
-    np.save(TEMP_PATH + '/train_labels.npy', train_labels)
+    np.save(TEMP_PATH + '/prepared_sets/train_labels.npy', train_labels)
     print("Save test_inputs...")
-    np.save(TEMP_PATH + '/test_inputs.npy', test_inputs)
+    np.save(TEMP_PATH + '/prepared_sets/test_inputs.npy', test_inputs)
     print("Save test_labels...")
-    np.save(TEMP_PATH + '/test_labels.npy', test_labels)
+    np.save(TEMP_PATH + '/prepared_sets/test_labels.npy', test_labels)

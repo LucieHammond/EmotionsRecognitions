@@ -18,8 +18,9 @@ faceDet_four = cv2.CascadeClassifier(RESOURCE_PATH + "/haarcascade_frontalface_a
 def detect_faces(emotion):
     files = glob.glob(TEMP_PATH + "/sorted_set/%s/*" % emotion)  # Get list of all images with emotion
 
-    filenumber = 0
     for f in files:
+        participant = f[-21: -17]
+
         frame = cv2.imread(f)  # Open image
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert image to grayscale
 
@@ -52,11 +53,10 @@ def detect_faces(emotion):
 
             try:
                 out = cv2.resize(gray, (SIZE, SIZE))  # Resize face so all images have same size
-                cv2.imwrite(TEMP_PATH + "/final_set/%s/%s.png" % (emotion, filenumber), out)  # Write image
+                cv2.imwrite(TEMP_PATH + "/final_set/%s/%s.png" % (emotion, participant), out)  # Write image
             except:
                 print("Une erreur est survenue lors du redimensionnage de l'image %s" %f)
                 pass  # If error, pass file
-        filenumber += 1  # Increment image number
 
 
 if __name__ == "__main__":

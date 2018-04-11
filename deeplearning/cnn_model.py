@@ -34,7 +34,7 @@ def model(features, labels, mode):
         activation=tf.nn.relu)
 
     # Pooling Layer #1
-    # First max pooling layer with a 2x2 filter and stride of 2
+    # First max pooling layer with a 4x4 filter and stride of 4
     # Input Tensor Shape: [batch_size, 200, 200, 64]
     # Output Tensor Shape: [batch_size, 50, 50, 64]
     pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[4, 4], strides=4)
@@ -52,7 +52,7 @@ def model(features, labels, mode):
         activation=tf.nn.relu)
 
     # Pooling Layer #2
-    # Second max pooling layer with a 5x5 filter and stride of 5
+    # Second max pooling layer with a 2x2 filter and stride of 2
     # Input Tensor Shape: [batch_size, 50, 50, 128]
     # Output Tensor Shape: [batch_size, 25, 25, 128]
     pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
@@ -99,8 +99,8 @@ def model(features, labels, mode):
 
     # Add evaluation metrics (for EVAL mode)
     eval_metric_ops = {
-      "accuracy": tf.metrics.accuracy(
-          labels=labels, predictions=predictions["classes"])}
+        "accuracy": tf.metrics.accuracy(
+            labels=labels, predictions=predictions["classes"])}
     return tf.estimator.EstimatorSpec(
       mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
 
@@ -108,11 +108,11 @@ def model(features, labels, mode):
 def main(unused_argv):
     # Load training and eval data
     print("Load training dataset...")
-    train_inputs = np.load(TEMP_PATH + '/train_inputs.npy')
-    train_labels = np.load(TEMP_PATH + '/train_labels.npy')
+    train_inputs = np.load(TEMP_PATH + '/prepared_sets/train_inputs.npy')
+    train_labels = np.load(TEMP_PATH + '/prepared_sets/train_labels.npy')
     print("Load test dataset...")
-    eval_inputs = np.load(TEMP_PATH + '/test_inputs.npy')
-    eval_labels = np.load(TEMP_PATH + '/test_labels.npy')
+    eval_inputs = np.load(TEMP_PATH + '/prepared_sets/test_inputs.npy')
+    eval_labels = np.load(TEMP_PATH + '/prepared_sets/test_labels.npy')
 
     # Create the Estimator
     emotions_classifier = tf.estimator.Estimator(
@@ -122,32 +122,31 @@ def main(unused_argv):
     # Log the values in the "Softmax" tensor with label "probabilities"
     tensors_to_log = {"probabilities": "softmax_tensor"}
     logging_hook = tf.train.LoggingTensorHook(
-        tensors=tensors_to_log, every_n_iter=10)
+        tensors=tensors_to_log, every_n_iter=50)
 
-    # Train the model
-    train_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": train_inputs},
-        y=train_labels,
-        batch_size=50,
-        num_epochs=None,
-        shuffle=True)
-    emotions_classifier.train(
-        input_fn=train_input_fn,
-        steps=500,
-        hooks=[logging_hook])
+    for i in range(10):
 
-    # Evaluate the model and print results
-    eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-        x={"x": eval_inputs},
-        y=eval_labels,
-        num_epochs=1,
-        shuffle=False)
-    eval_results = emotions_classifier.evaluate(input_fn=eval_input_fn)
-    print("\nRésultats :")
-    print(eval_results)
+        # Train the model
+        train_input_fn = tf.estimator.inputs.numpy_input_fn(
+            x={"x": train_inputs},
+            y=train_labels,
+            batch_size=50,
+            num_epochs=None,
+            shuffle=True)
+        emotions_classifier.train(
+            input_fn=train_input_fn,
+            steps=100,
+            hooks=[logging_hook])
 
-    test_results = emotions_classifier.predict(input_fn=eval_input_fn)
-
+        # Evaluate the model and print results
+        eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+            x={"x": eval_inputs},
+            y=eval_labels,
+            num_epochs=1,
+            shuffle=False)
+        eval_results = emotions_classifier.evaluate(input_fn=eval_input_fn)
+        print("\nRésultats :")
+        print(eval_results)
 
 
 if __name__ == "__main__":

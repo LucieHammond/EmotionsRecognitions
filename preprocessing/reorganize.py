@@ -35,16 +35,12 @@ for p in participants:
                 'p': participant, 's': session, 'nb': str(1).zfill(8)}
             sourcefile_emotion = DATASET_PATH + "/images/%(p)s/%(s)s/%(p)s_%(s)s_%(nb)s.png" % {
                 'p': participant, 's': session, 'nb': str(nb_picture).zfill(8)}
-            sourcefile_emotion_soft = DATASET_PATH + "/images/%(p)s/%(s)s/%(p)s_%(s)s_%(nb)s.png" % {
-                'p': participant, 's': session, 'nb': str(nb_picture - 5).zfill(8)}
 
             # New path for neutral image
             dest_neut = TEMP_PATH + "/sorted_set/neutral/%s" % sourcefile_neutral[-21:]
             # New path for images containing emotion
             dest_emot = TEMP_PATH + "/sorted_set/%s/%s" % (CK_EMOTIONS[emotion], sourcefile_emotion[-21:])
-            dest_emot_soft = TEMP_PATH + "/sorted_set/%s/%s" % (CK_EMOTIONS[emotion], sourcefile_emotion_soft[-21:])
 
             # Copy files in
             copyfile(sourcefile_neutral, dest_neut)
             copyfile(sourcefile_emotion, dest_emot)
-            copyfile(sourcefile_emotion_soft, dest_emot_soft)
