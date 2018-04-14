@@ -1,6 +1,7 @@
 """
-Ce fichier construit des ensembles d'apprentissage (training) et de test sous forme de tableaux numpy.
-Les arrays sont enregistrés sous forme de fichiers .npy dans le dossier temp
+This file build 2 sets (a training set and a test set) in the form of numpy arrays.
+To construct the sets, we divide randomly the set of images between 2 groups (85% for trining and 15% for test)
+The numpy arrays are saved as .npy files in the temp directory
 """
 
 from constants import TEMP_PATH, EMOTIONS, SIZE
@@ -14,6 +15,7 @@ height = SIZE
 
 
 def get_dataset_size():
+    """ List all images in final_set in order to count them and return the number of face images """
     nb_images = 0
     for emotion in EMOTIONS:
         nb_images += len(glob.glob(TEMP_PATH + "/final_set/%s/*" % emotion))
@@ -21,6 +23,10 @@ def get_dataset_size():
 
 
 def fill_dataset(size):
+    """ Create 2 global arrays (inputs and labels) and return them
+    - inputs : list all images as 2 dimensional arrays od pixels
+    - labels : list the emotion labels of each image as integers between 0 ad 6
+    """
 
     # Create numpy arrays for all inputs and all labels
     inputs = np.empty((size, width, height), dtype=int)
@@ -32,6 +38,7 @@ def fill_dataset(size):
         images = glob.glob(TEMP_PATH + "/final_set/%s/*" % EMOTIONS[emotion])  # Get list of all images with emotion
         for img_path in images:
             img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+
             inputs[index] = img
             labels[index] = emotion
             index += 1
@@ -40,6 +47,8 @@ def fill_dataset(size):
 
 
 def pick_elems(inputs, labels, elems):
+    """Create and return new sub-arrays of inputs and labels by picking only the elements from indexes given in elems"""
+
     sub_inputs = np.empty((len(elems), width, height), dtype=np.float32)
     sub_labels = np.empty(len(elems), dtype=np.int32)
 
@@ -61,7 +70,7 @@ if __name__ == "__main__":
 
     # Split the inputs in 2 sets : training and test (we will use cross validation on the training set)
     print("\nOn sépare les données d'entrée en deux ensembles distincts:")
-    train_size = int(0.9 * total_size)  # Compute the size of all sets
+    train_size = int(0.85 * total_size)  # Compute the size of all sets
     test_size = total_size - train_size
     print("training + validation set : %i" % train_size)
     print("test set : %i" % test_size)

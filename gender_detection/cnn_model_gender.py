@@ -1,5 +1,10 @@
 """
-Ce fichier construit un modèle de réseau neuronal convolutif (CNN) avec Tensorflow
+This file build a Convolutive Neural Network (CNN) with Tensorflow's estimators to estimate genders on face images.
+This CNN for genders is quite the same as the CNN for emotions contained in deeplearning/cnn_model
+except that the last layer contains as many neurons as there are genders to differentiate
+
+In this file, we train the network on training set and we regularly evaluate it on test set to see the evolution
+of the accuracy. We do not do any automatic cross validation here. We just adjusted hyperperameters by hand with tweaking.
 """
 
 from __future__ import absolute_import
@@ -8,7 +13,7 @@ from __future__ import print_function
 
 import numpy as np
 import tensorflow as tf
-from constants import SIZE, EMOTIONS, TEMP_PATH
+from constants import SIZE, TEMP_PATH, GENDERS
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -28,43 +33,43 @@ def model(features, labels, mode):
     # Output Tensor Shape: [batch_size, 200, 200, 64]
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
-        filters=64,
+        filters=32,
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
 
     # Pooling Layer #1
     # First max pooling layer with a 4x4 filter and stride of 4
-    # Input Tensor Shape: [batch_size, 200, 200, 64]
-    # Output Tensor Shape: [batch_size, 50, 50, 64]
+    # Input Tensor Shape: [batch_size, 200, 200, 32]
+    # Output Tensor Shape: [batch_size, 50, 50, 32]
     pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[4, 4], strides=4)
 
     # Convolutional Layer #2
     # Computes 64 features using a 5x5 filter.
     # Padding is added to preserve width and height.
-    # Input Tensor Shape: [batch_size, 50, 50, 64]
-    # Output Tensor Shape: [batch_size, 50, 50, 128]
+    # Input Tensor Shape: [batch_size, 50, 50, 32]
+    # Output Tensor Shape: [batch_size, 50, 50, 64]
     conv2 = tf.layers.conv2d(
         inputs=pool1,
-        filters=128,
+        filters=64,
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
 
     # Pooling Layer #2
     # Second max pooling layer with a 2x2 filter and stride of 2
-    # Input Tensor Shape: [batch_size, 50, 50, 128]
-    # Output Tensor Shape: [batch_size, 25, 25, 128]
+    # Input Tensor Shape: [batch_size, 50, 50, 64]
+    # Output Tensor Shape: [batch_size, 25, 25, 64]
     pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
 
     # Flatten tensor into a batch of vectors
-    # Input Tensor Shape: [batch_size, 25, 25, 128]
-    # Output Tensor Shape: [batch_size, 25 * 25 * 128]
-    pool2_flat = tf.reshape(pool2, [-1, 25 * 25 * 128])
+    # Input Tensor Shape: [batch_size, 25, 25, 64]
+    # Output Tensor Shape: [batch_size, 25 * 25 * 64]
+    pool2_flat = tf.reshape(pool2, [-1, 25 * 25 * 64])
 
     # Dense Layer
     # Densely connected layer with 1024 neurons
-    # Input Tensor Shape: [batch_size, 35 * 35 * 64]
+    # Input Tensor Shape: [batch_size, 25 * 25 * 64]
     # Output Tensor Shape: [batch_size, 1024]
     dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
 
@@ -74,8 +79,8 @@ def model(features, labels, mode):
 
     # Logits layer
     # Input Tensor Shape: [batch_size, 1024]
-    # Output Tensor Shape: [batch_size, 14]
-    logits = tf.layers.dense(inputs=dropout, units=2*len(EMOTIONS))
+    # Output Tensor Shape: [batch_size, 2]
+    logits = tf.layers.dense(inputs=dropout, units=len(GENDERS))  # 2 gender categories
 
     predictions = {
         # Generate predictions (for PREDICT and EVAL mode)
@@ -91,7 +96,7 @@ def model(features, labels, mode):
 
     # Configure the Training Op (for TRAIN mode)
     if mode == tf.estimator.ModeKeys.TRAIN:
-        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0005)
+        optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0001)
         train_op = optimizer.minimize(
             loss=loss,
             global_step=tf.train.get_global_step())
@@ -108,10 +113,10 @@ def model(features, labels, mode):
 def main(unused_argv):
     # Load training and eval data
     print("Load training dataset...")
-    train_inputs = np.load(TEMP_PATH + '/prepared_sets/train_inputs_gender.npy')
+    train_inputs = np.load(TEMP_PATH + '/prepared_sets/train_inputs.npy')
     train_labels = np.load(TEMP_PATH + '/prepared_sets/train_labels_gender.npy')
     print("Load test dataset...")
-    eval_inputs = np.load(TEMP_PATH + '/prepared_sets/test_inputs_gender.npy')
+    eval_inputs = np.load(TEMP_PATH + '/prepared_sets/test_inputs.npy')
     eval_labels = np.load(TEMP_PATH + '/prepared_sets/test_labels_gender.npy')
 
     # Create the Estimator
@@ -124,18 +129,17 @@ def main(unused_argv):
     logging_hook = tf.train.LoggingTensorHook(
         tensors=tensors_to_log, every_n_iter=50)
 
-    for i in range(9):
+    for i in range(10):
 
         # Train the model
         train_input_fn = tf.estimator.inputs.numpy_input_fn(
             x={"x": train_inputs},
             y=train_labels,
             batch_size=50,
-            num_epochs=None,
+            num_epochs=10,
             shuffle=True)
         emotions_classifier.train(
             input_fn=train_input_fn,
-            steps=100,
             hooks=[logging_hook])
 
         # Evaluate the model and print results

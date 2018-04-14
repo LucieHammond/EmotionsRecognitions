@@ -1,0 +1,22 @@
+Id 	 Results 	 Labels  	 Nb Errors
+7 	 disgust   H 	 neutral   H 	 1
+14 	 anger     H 	 neutral   H 	 1
+15 	 disgust   F 	 anger     F 	 1
+16 	 neutral   F 	 anger     F 	 1
+19 	 disgust   F 	 disgust   H 	 1
+24 	 anger     F 	 disgust   F 	 1
+26 	 disgust   H 	 disgust   F 	 1
+27 	 anger     H 	 disgust   H 	 1
+28 	 anger     F 	 fear      H 	 2
+29 	 neutral   F 	 fear      F 	 1
+30 	 surprise  F 	 fear      F 	 1
+37 	 happiness F 	 happiness H 	 1
+39 	 anger     F 	 happiness F 	 1
+41 	 happiness H 	 happiness F 	 1
+42 	 disgust   F 	 sadness   F 	 1
+43 	 fear      F 	 sadness   F 	 1
+44 	 neutral   H 	 sadness   H 	 1
+45 	 neutral   F 	 sadness   F 	 1
+46 	 neutral   F 	 sadness   F 	 1
+48 	 surprise  F 	 surprise  H 	 1
+58 	 surprise  H 	 surprise  F 	 1

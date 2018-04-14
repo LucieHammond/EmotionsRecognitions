@@ -1,5 +1,12 @@
 """
-Ce fichier construit un modèle de réseau neuronal convolutif (CNN) avec Tensorflow
+This file build a Convolutive Neural Network (CNN) with Tensorflow's estimators to estimate emotions on face images
+Our CNN contain 6 layers :
+- 2 convolutional layers each followed by a pooling layer for the detection of features (4 layers)
+- 2 fully connected layers for classification (2 layers)
+The last layer contains as many neurons as there are emotions to differentiate
+
+In this file, we train the network on training set and we regularly evaluate it on test set to see the evolution
+of the accuracy. We do not do any automatic cross validation here. We just adjusted hyperperameters by hand with tweaking.
 """
 
 from __future__ import absolute_import
@@ -28,43 +35,43 @@ def model(features, labels, mode):
     # Output Tensor Shape: [batch_size, 200, 200, 64]
     conv1 = tf.layers.conv2d(
         inputs=input_layer,
-        filters=64,
+        filters=32,
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
 
     # Pooling Layer #1
     # First max pooling layer with a 4x4 filter and stride of 4
-    # Input Tensor Shape: [batch_size, 200, 200, 64]
-    # Output Tensor Shape: [batch_size, 50, 50, 64]
+    # Input Tensor Shape: [batch_size, 200, 200, 32]
+    # Output Tensor Shape: [batch_size, 50, 50, 32]
     pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[4, 4], strides=4)
 
     # Convolutional Layer #2
     # Computes 64 features using a 5x5 filter.
     # Padding is added to preserve width and height.
-    # Input Tensor Shape: [batch_size, 50, 50, 64]
-    # Output Tensor Shape: [batch_size, 50, 50, 128]
+    # Input Tensor Shape: [batch_size, 50, 50, 32]
+    # Output Tensor Shape: [batch_size, 50, 50, 64]
     conv2 = tf.layers.conv2d(
         inputs=pool1,
-        filters=128,
+        filters=64,
         kernel_size=[5, 5],
         padding="same",
         activation=tf.nn.relu)
 
     # Pooling Layer #2
     # Second max pooling layer with a 2x2 filter and stride of 2
-    # Input Tensor Shape: [batch_size, 50, 50, 128]
-    # Output Tensor Shape: [batch_size, 25, 25, 128]
+    # Input Tensor Shape: [batch_size, 50, 50, 64]
+    # Output Tensor Shape: [batch_size, 25, 25, 64]
     pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
 
     # Flatten tensor into a batch of vectors
-    # Input Tensor Shape: [batch_size, 25, 25, 128]
-    # Output Tensor Shape: [batch_size, 25 * 25 * 128]
-    pool2_flat = tf.reshape(pool2, [-1, 25 * 25 * 128])
+    # Input Tensor Shape: [batch_size, 25, 25, 64]
+    # Output Tensor Shape: [batch_size, 25 * 25 * 64]
+    pool2_flat = tf.reshape(pool2, [-1, 25 * 25 * 64])
 
     # Dense Layer
     # Densely connected layer with 1024 neurons
-    # Input Tensor Shape: [batch_size, 35 * 35 * 64]
+    # Input Tensor Shape: [batch_size, 25 * 25 * 64]
     # Output Tensor Shape: [batch_size, 1024]
     dense = tf.layers.dense(inputs=pool2_flat, units=1024, activation=tf.nn.relu)
 
@@ -75,7 +82,7 @@ def model(features, labels, mode):
     # Logits layer
     # Input Tensor Shape: [batch_size, 1024]
     # Output Tensor Shape: [batch_size, 7]
-    logits = tf.layers.dense(inputs=dropout, units=len(EMOTIONS))
+    logits = tf.layers.dense(inputs=dropout, units=len(EMOTIONS))  # 7 categories of emotions
 
     predictions = {
         # Generate predictions (for PREDICT and EVAL mode)
@@ -109,10 +116,10 @@ def main(unused_argv):
     # Load training and eval data
     print("Load training dataset...")
     train_inputs = np.load(TEMP_PATH + '/prepared_sets/train_inputs.npy')
-    train_labels = np.load(TEMP_PATH + '/prepared_sets/train_labels.npy')
+    train_labels = np.load(TEMP_PATH + '/prepared_sets/train_labels_emotion.npy')
     print("Load test dataset...")
     eval_inputs = np.load(TEMP_PATH + '/prepared_sets/test_inputs.npy')
-    eval_labels = np.load(TEMP_PATH + '/prepared_sets/test_labels.npy')
+    eval_labels = np.load(TEMP_PATH + '/prepared_sets/test_labels_emotion.npy')
 
     # Create the Estimator
     emotions_classifier = tf.estimator.Estimator(
@@ -124,6 +131,7 @@ def main(unused_argv):
     logging_hook = tf.train.LoggingTensorHook(
         tensors=tensors_to_log, every_n_iter=50)
 
+    # We evaluate the loss and accuracy on test set every 10 epochs and we repeat this process several times
     for i in range(10):
 
         # Train the model
@@ -131,11 +139,10 @@ def main(unused_argv):
             x={"x": train_inputs},
             y=train_labels,
             batch_size=50,
-            num_epochs=None,
+            num_epochs=10,
             shuffle=True)
         emotions_classifier.train(
             input_fn=train_input_fn,
-            steps=100,
             hooks=[logging_hook])
 
         # Evaluate the model and print results

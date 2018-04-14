@@ -1,7 +1,7 @@
 """
-Ce fichier détecte les visages dans les images du set trié grâce aux librairies haarcascade_frontalface.
-Quand on a trouvé un visage, on redimensionne l'image autour de ce visage et on fait passer l'image en grayscale.
-Toutes les images enregistrées dans temp/final_set sont de taille 350 x 350 et en niveaux de gris
+This file detects faces inside the images of sorted_set thanks to haarcascade_frontalface libraries.
+When we find a face, we resize the image around that face and we put the colored image to grayscale.
+All the faces images will be saved in temp/final_set with size SIZE x SIZE (in pixels) -> see constants.
 """
 
 import cv2

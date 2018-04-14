@@ -1,6 +1,6 @@
 """
-Ce fichier trie les données utiles parmi le dataset Cohn Kanade brut.
-Les données triées sont enregistrées dans le dossier temp/sorted_set
+This file sort the images that will be useful among brute Cohn-Kanade dataset
+Sorted data will be saved in directory temp/sorted_set
 """
 
 import glob
@@ -41,6 +41,6 @@ for p in participants:
             # New path for images containing emotion
             dest_emot = TEMP_PATH + "/sorted_set/%s/%s" % (CK_EMOTIONS[emotion], sourcefile_emotion[-21:])
 
-            # Copy files in
+            # Copy files to new path
             copyfile(sourcefile_neutral, dest_neut)
             copyfile(sourcefile_emotion, dest_emot)

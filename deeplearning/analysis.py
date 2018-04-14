@@ -1,3 +1,10 @@
+"""
+This file tests the CNN model trained with cnn_model.py file (which state is stored in temp/cnn_model directory).
+We save the results on test set as a repartition of the images in result/classes directory
+We print the errors made in a special file named errors.txt
+We then compute the accuracy and the matrix of confusion and display it with matplotlib
+"""
+
 import os
 import cv2
 import itertools
@@ -12,6 +19,12 @@ from deeplearning.cnn_model import model
 
 
 def add_colored_icon(img, success):
+    """ Add a small icon in the bottom right hand corner of the image:
+    - a green check if success = True
+    - a red cross if success = False
+    Return the image with the modification
+    """
+
     # Convert to colored image
     img_color = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
     if success:
@@ -33,6 +46,14 @@ def add_colored_icon(img, success):
 
 
 def save_results(test_inputs, test_labels, test_results):
+    """
+    Compare test_results with test_labels for each index and save the corresponding test_input image
+    in a folder corresponding to the emotion found with a small icon at its bottom right hand corner
+    showing if this result was right or not.
+
+    Write the result and the true label in errors.txt file if the model was wrong
+    """
+
     # Create folders for emotions
     if not os.path.exists(RESULTS_PATH + '/classes'):
         os.makedirs(RESULTS_PATH + '/classes')
@@ -54,7 +75,6 @@ def save_results(test_inputs, test_labels, test_results):
                 error.write('%i \t %s \t %s\n' %(id, emotion_found.ljust(10), EMOTIONS[label]))
                 img = add_colored_icon(img, False)
             else :
-                pass
                 img = add_colored_icon(img, True)
 
             # Write image in folder corresponding to the emotion found
@@ -98,6 +118,7 @@ def plot_confusion_matrix(cm, classes,
 
 
 if __name__ == "__main__":
+    # Load test dataset
     print("Load test dataset...")
     test_inputs = np.load(TEMP_PATH + '/test_inputs.npy')
     test_labels = np.load(TEMP_PATH + '/test_labels.npy')
